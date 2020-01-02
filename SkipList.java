@@ -34,6 +34,7 @@ public class SkipList {
             Node lastOrCurrent = findResult.node;
             if (lastOrCurrent.value == value) {
                 System.out.println(value + "已经存在啦");
+                return;
             }
 
             int newValueRank = findResult.rank + 1;
