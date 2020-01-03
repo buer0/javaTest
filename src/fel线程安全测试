@@ -1,0 +1,85 @@
+public static void main(String[] args) {
+
+        FelEngineImpl felEngine = new FelEngineImpl();
+        FelContext felContext = new MapContext();
+        felContext.set("a", 0);
+        felContext.set("b", 0);
+        felContext.set("c", 0);
+        felContext.set("d", 0);
+        Expression expression = felEngine.compile("a+b+c*d", felContext);
+        new Performance(200, expression).test();
+    }
+    public static class Performance {
+        private Integer num;
+        private CyclicBarrier endcyclicBarrier;
+        private CyclicBarrier startCyclicBarrier;
+        private Long start;
+        private Expression expression;
+        private Calculator calculator;
+
+        public Performance(Integer num, Expression expression) {
+            this.expression = expression;
+            this.num = num;
+            this.endcyclicBarrier = new CyclicBarrier(num, new Runnable() {
+                @Override
+                public void run() {
+                    Long end = System.currentTimeMillis();
+                    System.out.println("所有线程结束，开始完成，时间：" + end);
+                }
+            });
+            this.startCyclicBarrier = new CyclicBarrier(num, new Runnable() {
+                @Override
+                public void run() {
+                    start = System.currentTimeMillis();
+                    System.out.println("所有线程就绪，开始执行，时间：" + start);
+                }
+            });
+
+            this.calculator = new Calculator(startCyclicBarrier, endcyclicBarrier, this.expression);
+        }
+
+
+        public void test() {
+            for (Integer i = 0; i < num; i++) {
+                new Thread(calculator, "thread" + i).start();
+            }
+
+        }
+
+        public static class Calculator implements Runnable {
+            private CyclicBarrier endcyclicBarrier;
+            private CyclicBarrier startCyclicBarrier;
+            private Expression expression;
+            public Calculator(CyclicBarrier startCyclicBarrier, CyclicBarrier endCyclicBarrier, Expression expression) {
+                this.startCyclicBarrier = startCyclicBarrier;
+                this.endcyclicBarrier = endCyclicBarrier;
+                this.expression = expression;
+            }
+
+            @Override
+            public void run() {
+                try {
+                    startCyclicBarrier.await();//控制统一开始
+                    calc();
+                    endcyclicBarrier.await();//登记完成
+                }catch (Exception e) {
+                    System.out.println(Thread.currentThread().getName() + "异常");
+                }
+            }
+
+            public void calc() {
+                Random random = new Random();
+                FelContext felContext = new MapContext();
+                int a = random.nextInt(10);
+                int b = random.nextInt(10);
+                int c = random.nextInt(10);
+                int d = random.nextInt(10);
+                felContext.set("a", a);
+                felContext.set("b", b);
+                felContext.set("c", c);
+                felContext.set("d", d);
+                System.out.println( a + "+" + b + "+" + c + "*" + d + "=" + expression.eval(felContext));
+            }
+        }
+    }
+    
