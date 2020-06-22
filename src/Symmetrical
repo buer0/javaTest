@@ -1,0 +1,51 @@
+package com.maodou.mall.car.service;
+
+import lombok.Builder;
+
+//判断单链表是否对称
+public class Symmetrical {
+    static int size = 5;//链表长度
+    static Node p;
+
+    public static void main(String[] args) {
+        Node head = init(size);
+        boolean result = isSymmetrical(head, 1);
+        return;
+    }
+
+    public static boolean isSymmetrical(Node node, int index) {
+        if (size%2 == 0 && index == size/2) {
+            p = node.next;
+            return node.value == p.value;
+        }
+        if (size%2 == 1 && index == (size - 1)/2) {
+            p = node.next.next;
+            return node.value == p.value;
+        }
+
+        if (isSymmetrical(node.next, index+1)) {
+            if (node.value == p.next.value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Node init(int size) {
+        Node node = Node.builder().value(Math.abs(2 - size - 1)).build();
+        Node p = node;
+        int i = 2;
+        while (i <= size) {
+            p.next = Node.builder().value(Math.abs(2*i - size - 1)).build();
+            p = p.next;
+            i++;
+        }
+        return node;
+    }
+
+    @Builder
+    public static class Node {
+        int value;
+        Node next;
+    }
+}
